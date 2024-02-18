@@ -1,23 +1,25 @@
-import { html } from './scripts.js';
+import { getElement } from './scripts.js';
 
 /** Toggles the settings overlay either open or closed */
 export const handleSettingsToggle = (event) => {
-  if (html.settings.overlay.open) {
-    html.settings.overlay.close();
-  } else html.settings.overlay.showModal();
-  html.settings.theme.focus();
+  const overlay = getElement('settings-overlay');
+  if (overlay.open) {
+    overlay.close();
+  } else overlay.showModal();
+  getElement('settings-theme').focus();
 };
 
 /**
  * @param {String} theme - Only accepts "day" or "night"
  */
 export const setTheme = (theme) => {
+  let themeInput = getElement('settings-theme');
   if (theme === 'night') {
-    html.settings.theme.value = 'night';
+    themeInput.value = 'night';
     document.documentElement.style.setProperty('--color-dark', '255, 255, 255');
     document.documentElement.style.setProperty('--color-light', '10, 10, 20');
   } else {
-    html.settings.theme.value = 'day';
+    themeInput.value = 'day';
     document.documentElement.style.setProperty('--color-dark', '10, 10, 20');
     document.documentElement.style.setProperty('--color-light', '255, 255, 255');
   }
@@ -31,5 +33,5 @@ export const handleSettingsSubmit = (event) => {
   const formData = new FormData(event.target);
   const result = Object.fromEntries(formData);
   setTheme(result.theme);
-  html.settings.overlay.close();
+  getElement('settings-overlay').close();
 };

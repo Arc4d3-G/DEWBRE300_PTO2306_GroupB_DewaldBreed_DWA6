@@ -1,5 +1,5 @@
 import { books, genres, BOOKS_PER_PAGE } from './data.js';
-import { html } from './scripts.js';
+import { getElement } from './scripts.js';
 import { generatePreviews } from './previews.js';
 
 let page = 1;
@@ -10,11 +10,12 @@ let matches = books;
  */
 export const updateShowMoreButton = () => {
   let remainingResults = null;
+  let buttonElement = getElement('list-button');
   if (matches.length - page * BOOKS_PER_PAGE > 0) {
     remainingResults = matches.length - page * BOOKS_PER_PAGE;
   } else remainingResults = 0;
-  html.list.button.innerText = `Show more (${remainingResults})`;
-  html.list.button.disabled = !(remainingResults > 0);
+  buttonElement.innerText = `Show more (${remainingResults})`;
+  buttonElement.disabled = !(remainingResults > 0);
 };
 
 /**
@@ -25,17 +26,17 @@ export const updateShowMoreButton = () => {
  */
 export const handleShowMoreButton = (event) => {
   page += 1;
-  html.main.list.appendChild(generatePreviews(matches, page));
+  getElement('list-items').appendChild(generatePreviews(matches, page));
   updateShowMoreButton();
-  console.log(page);
 };
 
 /** Toggles the settings overlay either open or closed */
 export const handleSearchToggle = (event) => {
-  if (html.search.overlay.open) {
-    html.search.overlay.close();
-  } else html.search.overlay.showModal();
-  html.search.title.focus();
+  const overlay = getElement('search-overlay');
+  if (overlay.open) {
+    overlay.close();
+  } else overlay.showModal();
+  getElement('search-title').focus();
 };
 
 /**
@@ -129,11 +130,11 @@ export const handleSearchSubmit = (event) => {
   const searchResult = generateSearchResults(filters);
 
   if (searchResult.length < 1) {
-    html.list.message.classList.add('list__message_show');
-  } else html.list.message.classList.remove('list__message_show');
+    getElement('list-message').classList.add('list__message_show');
+  } else getElement('list-message').classList.remove('list__message_show');
 
-  html.main.list.innerHTML = '';
-  html.main.list.appendChild(generatePreviews(searchResult, 1));
+  getElement('list-items').innerHTML = '';
+  getElement('list-items').appendChild(generatePreviews(searchResult, 1));
   window.scrollTo({ top: 0, behavior: 'smooth' });
   matches = searchResult;
   page = 1;

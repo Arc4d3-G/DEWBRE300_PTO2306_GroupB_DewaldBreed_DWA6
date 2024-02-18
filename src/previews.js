@@ -1,12 +1,13 @@
 import { books, authors, BOOKS_PER_PAGE } from './data.js';
-import { html } from './scripts.js';
+import { getElement } from './scripts.js';
 
 /** Toggles the book preview overlay either open or closed */
 export const handlePreviewToggle = (event) => {
+  const overlay = getElement('list-active');
   if (event.target.className === 'list__items') return;
-  if (html.list.active.open) {
-    html.list.active.close();
-  } else html.list.active.showModal();
+  if (overlay.open) {
+    overlay.close();
+  } else overlay.showModal();
 };
 
 /**
@@ -27,6 +28,7 @@ export const generatePreviews = (targetObject, page) => {
   const previewFragment = document.createDocumentFragment();
   const rangeStart = (page - 1) * BOOKS_PER_PAGE;
   const rangeEnd = page * BOOKS_PER_PAGE;
+
   for (const { author, id, image, title } of targetObject.slice(rangeStart, rangeEnd)) {
     let element = document.createElement('button');
     element.classList.add('preview');
@@ -50,35 +52,58 @@ export const generatePreviews = (targetObject, page) => {
 };
 
 /**
+ *
+ * @param {Array} nodeArray
+ * @param {String} dataAttr
+ * @returns {Element}
+ */
+export const getElementFromArray = (nodeArray, dataAttr) => {
+  let result = null;
+  for (const node of nodeArray) {
+    if (node.dataset[dataAttr]) {
+      result = node;
+      break;
+    }
+  }
+  return result;
+};
+/**
+ * @param {Array} nodeArray - accepts any event path array
+ * @returns {Object} active -  matching book object
+ */
+const setActiveBook = (previewId) => {
+  let active = null;
+  for (const singleBook of books) {
+    if (singleBook.id === previewId) {
+      active = singleBook;
+      break;
+    }
+  }
+  return active;
+};
+
+/**
  * Generates data for the preview overlay by creating an array from the event path and then
  * searching through each node until the active node is found. It then checks if the active node
  * has a dataset of "preview", in which case it then searches through the {@link books} object for a
  * matching {@link id} and then inserts the data to the element.
  */
 export const generatePreviewOverlayData = (event) => {
-  const pathArray = Array.from(event.path || event.composedPath());
-  let active = null;
-
-  for (const node of pathArray) {
-    if (active) break;
-
-    if (node?.dataset?.preview) {
-      let result = null;
-
-      for (const singleBook of books) {
-        if (result) break;
-        if (singleBook.id === node?.dataset?.preview) result = singleBook;
-      }
-
-      active = result;
-    }
+  if (event.target.className === 'list__items') {
+    return;
+  } else {
+    const pathArray = Array.from(event.path || event.composedPath());
+    const activePreview = getElementFromArray(pathArray, 'preview');
+    const previewId = activePreview.dataset.preview;
+    const activeBook = setActiveBook(previewId);
+    if (activeBook) {
+      getElement('list-blur').src = activeBook.image;
+      getElement('list-image').src = activeBook.image;
+      getElement('list-title').innerText = activeBook.title;
+      getElement('list-subtitle').innerText = `${authors[activeBook.author]} (${new Date(
+        activeBook.published
+      ).getFullYear()})`;
+      getElement('list-description').innerText = activeBook.description;
+    } else return;
   }
-
-  html.list.blur.src = active.image;
-  html.list.image.src = active.image;
-  html.list.title.innerText = active.title;
-  html.list.subtitle.innerText = `${authors[active.author]} (${new Date(
-    active.published
-  ).getFullYear()})`;
-  html.list.description.innerText = active.description;
 };
